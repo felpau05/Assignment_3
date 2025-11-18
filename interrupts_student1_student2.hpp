@@ -1,3 +1,10 @@
+/**
+ * @file interrupts.hpp
+ * @author Sasisekhar Govind
+ * @brief template main.cpp file for Assignment 3 Part 1 of SYSC4001
+ * 
+ */
+
 #ifndef INTERRUPTS_HPP_
 #define INTERRUPTS_HPP_
 
@@ -5,14 +12,14 @@
 #include<fstream>
 #include<string>
 #include<vector>
+#include<tuple>
 #include<random>
 #include<utility>
 #include<sstream>
 #include<iomanip>
-#include<queue>
 #include<algorithm>
 
-
+//An enumeration of states to make assignment easier
 enum states {
     NEW,
     READY,
@@ -21,7 +28,7 @@ enum states {
     TERMINATED,
     NOT_ASSIGNED
 };
-std::ostream& operator<<(std::ostream& os, const enum states& s) {
+std::ostream& operator<<(std::ostream& os, const enum states& s) { //Overloading the << operator to make printing of the enum easier
 
 	std::string state_names[] = {
                                 "NEW",
@@ -60,25 +67,6 @@ struct PCB{
     unsigned int    io_duration;
 };
 
-class SimpleLCG {
-    public:
-    SimpleLCG(uint32_t seed) : current(seed) {}
-
-    // Generate a random number using LCG
-    uint32_t generate() {
-        current = (current * 1664525 + 1013904223) % (1u << 31);
-        return current;
-    }
-
-    // Get a number in the desired range
-    int get_random(int min, int max) {
-        return min + (generate() % (max - min + 1));
-    }
-
-    private:
-    uint32_t current;
-};
-
 //------------------------------------HELPER FUNCTIONS FOR THE SIMULATOR------------------------------
 // Following function was taken from stackoverflow; helper function for splitting strings
 std::vector<std::string> split_delim(std::string input, std::string delim) {
@@ -95,6 +83,7 @@ std::vector<std::string> split_delim(std::string input, std::string delim) {
     return tokens;
 }
 
+//Function that takes a queue as an input and outputs a string table of PCBs
 std::string print_PCB(std::vector<PCB> _PCB) {
     const int tableWidth = 83;
 
@@ -148,99 +137,14 @@ std::string print_PCB(std::vector<PCB> _PCB) {
     return buffer.str();
 }
 
+//Overloaded function that takes a single PCB as input
 std::string print_PCB(PCB _PCB) {
     std::vector<PCB> temp;
     temp.push_back(_PCB);
     return print_PCB(temp);
 }
 
-std::string get_memory_header() {
-
-    const int tableWidth = 91;
-
-    std::stringstream buffer;
-    
-    // Print top border
-    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
-    
-    // Print headers
-    buffer  << "|"
-            << std::setfill(' ') << std::setw(13) << "Time of Event"
-            << std::setw(2) << "|"
-            << std::setfill(' ') << std::setw(11) << "Memory Used"
-            << std::setw(2) << "|"
-            << std::setfill(' ') << std::setw(22) << "Partitions State"
-            << std::setw(2) << "|"
-            << std::setfill(' ') << std::setw(17) << "Total Free Memory"
-            << std::setw(2) << "|"
-            << std::setfill(' ') << std::setw(18) << "Usable Free Memory"
-            << std::setw(2) << "|" << std::endl;
-    
-    // Print separator
-    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
-
-    return buffer.str();
-
-}
-
-std::string log_memory_status(unsigned int current_time, std::vector<PCB> job_queue) {
-
-    const int tableWidth = 91;
-
-    std::stringstream buffer;
-
-    unsigned int memory_used = 0;
-    unsigned int total_free_memory = 0;
-    unsigned int usable_free_memory = 0;
-    std::string partitions_state;
-
-    for(auto partition : memory_paritions) {
-        if(partition.occupied == -1) {
-            usable_free_memory += partition.size;
-            total_free_memory += partition.size;
-        } else {
-            for(auto job : job_queue) {
-                if(partition.occupied == job.PID) {
-                    total_free_memory += (partition.size - job.size);
-                    memory_used += job.size;
-                }
-            }
-        }
-
-        if(partition.partition_number < 6){
-            partitions_state += std::to_string(partition.occupied) + ", ";
-        } else {
-            partitions_state += std::to_string(partition.occupied);
-        }
-
-    }
-
-    buffer  << "|"
-            << std::setfill(' ') << std::setw(13) << current_time
-            << std::setw(2) << "|"
-            << std::setw(11) << memory_used
-            << std::setw(2) << "|"
-            << std::setw(22) << partitions_state
-            << std::setw(2) << "|"
-            << std::setw(17) << total_free_memory
-            << std::setw(2) << "|"
-            << std::setw(18) << usable_free_memory
-            << std::setw(2) << "|" << std::endl;
-
-    return buffer.str();
-}
-
-std::string get_memory_footer() {
-    const int tableWidth = 91;
-    std::stringstream buffer;
-
-    // Print bottom border
-    buffer << "+" << std::setfill('-') << std::setw(tableWidth) << "+" << std::endl;
-
-    return buffer.str();
-}
-
-std::string get_exec_header() {
+std::string print_exec_header() {
 
     const int tableWidth = 49;
 
@@ -267,7 +171,7 @@ std::string get_exec_header() {
 
 }
 
-std::string log_exec_status(unsigned int current_time, int PID, states old_state, states new_state) {
+std::string print_exec_status(unsigned int current_time, int PID, states old_state, states new_state) {
 
     const int tableWidth = 49;
 
@@ -286,7 +190,7 @@ std::string log_exec_status(unsigned int current_time, int PID, states old_state
     return buffer.str();
 }
 
-std::string get_exec_footer() {
+std::string print_exec_footer() {
     const int tableWidth = 49;
     std::stringstream buffer;
 
@@ -296,12 +200,28 @@ std::string get_exec_footer() {
     return buffer.str();
 }
 
-void set_queue(std::vector<PCB> &job_queue, PCB running) {
-    for(auto &process : job_queue) {
-        if(process.PID == running.PID) {
-            process = running;
+//Synchronize the process in the process queue
+void sync_queue(std::vector<PCB> &process_queue, PCB _process) {
+    for(auto &process : process_queue) {
+        if(process.PID == _process.PID) {
+            process = _process;
         }
     }
+}
+
+//Writes a string to a file
+void write_output(std::string execution, const char* filename) {
+    std::ofstream output_file(filename);
+
+    if (output_file.is_open()) {
+        output_file << execution;
+        output_file.close();  // Close the file when done
+        std::cout << "File content overwritten successfully." << std::endl;
+    } else {
+        std::cerr << "Error opening file!" << std::endl;
+    }
+
+    std::cout << "Output generated in " << filename << ".txt" << std::endl;
 }
 
 //--------------------------------------------FUNCTIONS FOR THE "OS"-------------------------------------
@@ -324,6 +244,7 @@ bool assign_memory(PCB &program) {
     return false;
 }
 
+//Free a memory partition
 bool free_memory(PCB &program){
     for(int i = 5; i >= 0; i--) {
         if(program.PID == memory_paritions[i].occupied) {
@@ -335,6 +256,7 @@ bool free_memory(PCB &program){
     return false;
 }
 
+//Convert a list of strings into a PCB
 PCB add_process(std::vector<std::string> tokens) {
     PCB process;
     process.PID = std::stoi(tokens[0]);
@@ -351,6 +273,7 @@ PCB add_process(std::vector<std::string> tokens) {
     return process;
 }
 
+//Returns true if all processes in the queue have terminated
 bool all_process_terminated(std::vector<PCB> processes) {
 
     for(auto process : processes) {
@@ -362,19 +285,21 @@ bool all_process_terminated(std::vector<PCB> processes) {
     return true;
 }
 
+//Terminates a given process
 void terminate_process(PCB &running, std::vector<PCB> &job_queue) {
     running.remaining_time = 0;
     running.state = TERMINATED;
     free_memory(running);
-    set_queue(job_queue, running);
+    sync_queue(job_queue, running);
 }
 
+//set the process in the ready queue to runnning
 void run_process(PCB &running, std::vector<PCB> &job_queue, std::vector<PCB> &ready_queue, unsigned int current_time) {
     running = ready_queue.back();
     ready_queue.pop_back();
     running.start_time = current_time;
     running.state = RUNNING;
-    set_queue(job_queue, running);
+    sync_queue(job_queue, running);
 }
 
 void idle_CPU(PCB &running) {
@@ -388,120 +313,6 @@ void idle_CPU(PCB &running) {
     running.size = 0;
     running.state = NOT_ASSIGNED;
     running.PID = -1;
-}
-
-void FCFS(std::vector<PCB> &list_processes, std::vector<PCB> &ready_queue) {
-    std::sort( 
-                ready_queue.begin(),
-                ready_queue.end(),
-                []( const PCB &first, const PCB &second ){
-                    return (first.arrival_time > second.arrival_time); 
-                } 
-            );
-}
-
-
-
-std::tuple<std::string, std::string> run_simulation(std::vector<PCB> list_processes, SimpleLCG lcg) {
-
-    std::vector<PCB> ready_queue;
-    std::vector<PCB> wait_queue;
-    std::vector<PCB> job_queue;
-
-    unsigned int current_time = 0;
-    PCB running;
-
-    //Initialize an empty running process
-    idle_CPU(running);
-
-    std::string memory_status;
-    std::string execution_status;
-
-    memory_status = get_memory_header();
-    memory_status += log_memory_status(current_time, job_queue);
-    execution_status = get_exec_header();
-
-    std::vector<PCB> prev_job_queue;
-
-    while(!all_process_terminated(job_queue) || job_queue.empty()) {
-        std::vector<PCB> new_processes;
-
-        for(auto &process : list_processes) {
-            if(process.arrival_time == current_time) {
-                assign_memory(process);
-
-                process.state = READY;
-                set_queue(list_processes, process);
-                ready_queue.push_back(process);
-                job_queue.push_back(process);
-
-                execution_status += log_exec_status(current_time, process.PID, NEW, READY);
-                memory_status += log_memory_status(current_time, job_queue);
-            }
-        }
-
-        if(running.PID != -1 && current_time == (running.start_time + running.io_freq) && running.remaining_time > 0) {
-            running.remaining_time = running.remaining_time - running.io_freq;
-            running.state = WAITING;
-            set_queue(job_queue, running);
-            wait_queue.push_back(running);
-
-            execution_status += log_exec_status(current_time, running.PID, RUNNING, WAITING);
-            idle_CPU(running);
-        }
-
-        if(wait_queue.size() > 1){
-            std::sort (
-                wait_queue.begin(),
-                wait_queue.end(),
-                [] (const PCB &first, const PCB &second) {
-                    auto io_processing_time_1 = first.start_time + first.io_freq + first.io_duration;
-                    auto io_processing_time_2 = second.start_time + second.io_freq + second.io_duration;
-                    return io_processing_time_1 > io_processing_time_2;
-                }
-            );
-        }
-
-        while(!wait_queue.empty() && current_time == (wait_queue.back().start_time + wait_queue.back().io_freq + wait_queue.back().io_duration))  {
-            wait_queue.back().state = READY;
-            set_queue(job_queue, wait_queue.back());
-            ready_queue.push_back(wait_queue.back());
-            wait_queue.pop_back();
-
-            execution_status += log_exec_status(current_time, ready_queue.back().PID, WAITING, READY);
-        }
-
-        FCFS(job_queue, ready_queue);
-
-        if(current_time >= (running.remaining_time + running.start_time)) {
-
-            if(ready_queue.empty()) {
-                if(running.PID != -1){
-                    execution_status += log_exec_status(current_time, running.PID, RUNNING, TERMINATED);
-                    terminate_process(running, job_queue);
-                    memory_status += log_memory_status(current_time, job_queue);
-                }
-
-                idle_CPU(running);
-            } else {
-                if(running.PID != -1){
-                    execution_status += log_exec_status(current_time, running.PID, RUNNING, TERMINATED);
-                    terminate_process(running, job_queue);
-                    memory_status += log_memory_status(current_time, job_queue);
-                }
-
-                run_process(running, job_queue, ready_queue, current_time);
-                execution_status += log_exec_status(current_time, running.PID, READY, RUNNING);
-            }
-        }
-
-        current_time++;
-    }
-
-    memory_status += get_memory_footer();
-    execution_status += get_exec_footer();
-
-    return std::make_tuple(execution_status, memory_status);
 }
 
 #endif
