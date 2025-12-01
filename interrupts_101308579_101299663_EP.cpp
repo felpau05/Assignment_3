@@ -20,7 +20,7 @@ void FCFS(std::vector<PCB> &ready_queue) {
             );
 }
 
-std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std::vector<PCB> list_processes) {
+std::tuple<std::string> run_simulation(std::vector<PCB> list_processes) {
 
     std::vector<PCB> ready_queue;   //The ready queue of processes
     std::vector<PCB> wait_queue;    //The wait queue of processes
@@ -46,6 +46,10 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         }
         return nullptr;
     };
+
+    //Pre-process
+    std::map<int, unsigned int> total_cpu_time;
+    std::map<int, unsigned int> io_remaining;
 
     while (!all_process_terminated(list_processes)) {
 
